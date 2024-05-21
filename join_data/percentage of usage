@@ -1,0 +1,37 @@
+WITH usage_cte AS (
+    SELECT
+        id,
+        COUNT(DISTINCT activitydate::date) AS daily_useage
+    FROM daily_activity_sleep
+    GROUP BY id
+),
+categorized_usage AS (
+    SELECT
+        id,
+        daily_useage,
+        CASE
+            WHEN daily_useage >= 1 AND daily_useage <= 10 THEN 'low use'
+            WHEN daily_useage >= 11 AND daily_useage <= 20 THEN 'moderate use'
+            WHEN daily_useage >= 21 AND daily_useage <= 31 THEN 'high use'
+            ELSE 'no use'
+        END AS use_case
+    FROM usage_cte
+),
+use_case_counts AS (
+    SELECT
+        use_case,
+        COUNT(*) AS use_case_count
+    FROM categorized_usage
+    GROUP BY use_case
+),
+total_counts AS (
+    SELECT
+        SUM(use_case_count) AS total_count
+    FROM use_case_counts
+)
+SELECT
+    u.use_case,
+    u.use_case_count,
+    ROUND((u.use_case_count::decimal / t.total_count) * 100, 2) AS use_case_percentage
+FROM use_case_counts u, total_counts t
+ORDER BY use_case;

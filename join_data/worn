@@ -1,0 +1,21 @@
+COPY(
+WITH time_usages AS (
+    SELECT 
+        id,  -- Include id to identify each row
+        very_active_min + fairly_active_min + light_active_min + sedent_min AS total_min_worn
+    FROM time_usage
+)
+
+SELECT 
+    tu.id,
+    tu.total_min_worn, 
+    ROUND((tu.total_min_worn::numeric / 1440) * 100, 2) AS percent_min_worn,  -- Corrected the divisor to 1440 (total minutes in a day)
+    CASE 
+        WHEN ROUND((tu.total_min_worn::numeric / 1440) * 100, 2) = 100 THEN 'All day'
+        WHEN ROUND((tu.total_min_worn::numeric / 1440) * 100, 2) < 100 AND ROUND((tu.total_min_worn::numeric / 1440) * 100, 2) > 50 THEN 'More than half day'
+        WHEN ROUND((tu.total_min_worn::numeric / 1440) * 100, 2) <= 50 THEN 'Less than half day'
+        ELSE 'NA'
+    END AS worn
+FROM time_usages tu
+ORDER BY tu.id
+) TO '/Users/saquibhazari/Desktop/Fitbase Data/join_data/worn.csv' WITH (FORMAT CSV, HEADER)

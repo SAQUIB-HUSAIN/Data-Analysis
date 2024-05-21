@@ -1,0 +1,21 @@
+CREATE TABLE time_usage AS
+SELECT da.id,
+      da.activitydate,
+      da.total_steps,
+      da.total_distance,
+      da.calories,
+      da.very_active_min,
+      da.fairly_active_min,
+      da.light_active_distance,
+      da.light_active_min,
+      da.log_active_distance,
+      da.mod_active_distance,
+      da.sedent_active_distance,
+      da.sedent_min,
+      du.daily_usage,
+      du.use_cases
+FROM daily_activity da
+INNER JOIN daily_usage du ON du.id = da.id
+
+SELECT *
+FROM time_usage

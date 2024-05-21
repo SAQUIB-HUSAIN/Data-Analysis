@@ -1,0 +1,64 @@
+SELECT *
+FROM daily_activity_sleep
+
+COPY(
+    WITH categorized_users AS (  
+      SELECT 
+            id, 
+            ROUND(AVG(total_steps), 2) AS avg_steps,
+            ROUND(AVG(calories), 2) AS avg_calories,
+            ROUND(AVG(total_min_sleep), 2) AS avg_min_sleep,
+            CASE 
+                  WHEN ROUND(AVG(total_steps), 2) < 5000 THEN 'sedentary'
+                  WHEN ROUND(AVG(total_steps), 2) >= 5000 AND ROUND(AVG(total_steps), 2) <= 7499 THEN 'lightly active'
+                  WHEN ROUND(AVG(total_steps), 2) >= 7499 AND ROUND(AVG(total_steps), 2) <= 9999 THEN 'fairly active'
+                  WHEN ROUND(AVG(total_steps), 2) > 9999 THEN 'very active'
+                  ELSE 'not active'
+            END AS user_types
+      FROM daily_activity_sleep
+      GROUP BY id
+      ORDER BY id ASC
+),
+user_type_counts AS (
+      SELECT user_types,
+      COUNT(*) AS user_count
+      FROM categorized_users
+      GROUP BY user_types
+),
+total_users AS (
+      SELECT SUM(user_count) AS total_count
+      FROM user_type_counts
+)
+SELECT 
+      utc.user_types, 
+      utc.user_count, 
+      ROUND((utc.user_count::numeric/tu.total_count) * 100, 2) AS user_type_percentage
+FROM total_users tu, user_type_counts utc
+ORDER BY utc.user_types
+) TO '/Users/saquibhazari/Desktop/Fitbase Data/join_data/user_type_steps.csv' WITH (FORMAT CSV, HEADER)
+
+WITH user_activity AS (
+    SELECT 
+        id,
+        ROUND(AVG(total_steps), 2) AS avg_steps,
+        CASE 
+            WHEN ROUND(AVG(total_steps), 2) < 5000 THEN 'sedentary'
+            WHEN ROUND(AVG(total_steps), 2) >= 5000 AND ROUND(AVG(total_steps), 2) <= 7499 THEN 'lightly active'
+            WHEN ROUND(AVG(total_steps), 2) >= 7499 AND ROUND(AVG(total_steps), 2) <= 9999 THEN 'fairly active'
+            WHEN ROUND(AVG(total_steps), 2) > 9999 THEN 'very active'
+            ELSE 'not active'
+        END AS user_types
+    FROM daily_activity_sleep
+    GROUP BY id
+),
+total_user_type AS(
+      SELECT
+      SUM(avg_steps) AS total_avg_step
+      FROM user_activity
+)
+SELECT user_types, ROUND((ua.avg_steps::numeric / tut.total_avg_step)*100, 2) AS sum_avg_steps
+FROM user_activity ua, total_user_type tut
+GROUP BY user_types, ua.avg_steps, tut.total_avg_step
+
+
+

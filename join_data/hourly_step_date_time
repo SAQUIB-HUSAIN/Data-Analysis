@@ -1,0 +1,7 @@
+
+COPY(
+      SELECT id,
+            activity_hour::date AS date,
+            activity_hour::time AS time, step_total
+      FROM hourly_steps
+) TO '/Users/saquibhazari/Desktop/Fitbase Data/join_data/dat_time_hourlysteps.csv' WITH (FORMAT CSV, HEADER)

@@ -1,0 +1,47 @@
+CREATE TABLE usertype_weekdays AS
+SELECT
+    id,
+    ROUND(AVG(total_steps), 2) AS avg_steps,
+    ROUND(AVG(calories), 2) AS avg_calories,
+    ROUND(AVG(total_min_sleep), 2) AS avg_min_sleep,
+    CASE 
+        WHEN ROUND(AVG(total_steps), 2) < 5000 THEN 'sedentary'
+        WHEN ROUND(AVG(total_steps), 2) >= 5000 AND ROUND(AVG(total_steps), 2) <= 7499 THEN 'lightly active'
+        WHEN ROUND(AVG(total_steps), 2) >= 7499 AND ROUND(AVG(total_steps), 2) <= 9999 THEN 'fairly active'
+        WHEN ROUND(AVG(total_steps), 2) > 9999 THEN 'very active'
+        ELSE 'not active'
+    END AS user_types,
+    CASE 
+        WHEN EXTRACT(DOW FROM activitydate) = 0 THEN 'Sunday'
+        WHEN EXTRACT(DOW FROM activitydate) = 1 THEN 'Monday'
+        WHEN EXTRACT(DOW FROM activitydate) = 2 THEN 'Tuesday'
+        WHEN EXTRACT(DOW FROM activitydate) = 3 THEN 'Wednesday'
+        WHEN EXTRACT(DOW FROM activitydate) = 4 THEN 'Thursday'
+        WHEN EXTRACT(DOW FROM activitydate) = 5 THEN 'Friday'
+        ELSE 'Saturday'
+    END AS weekday_name
+FROM daily_activity_sleep
+GROUP BY id, activitydate
+ORDER BY id ASC;
+
+
+
+
+COPY(
+      SELECT
+      weekday_name,
+      ROUND(AVG(avg_min_sleep), 2) AS daily_sleep,
+      ROUND(AVG(avg_steps), 2) AS daily_steps
+      FROM usertype_weekdays
+      GROUP BY weekday_name
+      ORDER BY
+      CASE weekday_name
+            WHEN 'Monday' THEN 1
+            WHEN 'Tuesday' THEN 2
+            WHEN 'Wednesday' THEN 3
+            WHEN 'Thursday' THEN 4
+            WHEN 'Friday' THEN 5
+            WHEN 'Saturday' THEN 6
+            WHEN 'Sunday' THEN 7
+      END
+) TO '/Users/saquibhazari/Desktop/Fitbase Data/join_data/sleep_steps_week.csv' WITH (FORMAT CSV, HEADER)

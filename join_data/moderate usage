@@ -1,0 +1,59 @@
+COPY (
+WITH usage_cte AS (
+    SELECT
+        id,
+        COUNT(DISTINCT activitydate::date) AS daily_usage
+    FROM daily_activity_sleep
+    GROUP BY id
+),
+categorized_usage AS (
+    SELECT
+        id,
+        daily_usage,
+        CASE
+            WHEN daily_usage >= 1 AND daily_usage <= 10 THEN 'low use'
+            WHEN daily_usage >= 11 AND daily_usage <= 20 THEN 'moderate use'
+            WHEN daily_usage >= 21 AND daily_usage <= 31 THEN 'high use'
+            ELSE 'no use'
+        END AS use_case
+    FROM usage_cte
+),
+time_usages AS (
+    SELECT 
+        id,
+        very_active_min + fairly_active_min + light_active_min + sedent_min AS total_min_worn
+    FROM time_usage
+),
+classified_time_usages AS (
+    SELECT
+        id,
+        total_min_worn,
+        ROUND((total_min_worn::numeric / 1440) * 100, 2) AS percent_min_worn,
+        CASE 
+            WHEN ROUND((total_min_worn::numeric / 1440) * 100, 2) = 100 THEN 'All day'
+            WHEN ROUND((total_min_worn::numeric / 1440) * 100, 2) < 100 AND ROUND((total_min_worn::numeric / 1440) * 100, 2) > 50 THEN 'More than half day'
+            WHEN ROUND((total_min_worn::numeric / 1440) * 100, 2) <= 50 THEN 'Less than half day'
+            ELSE 'NA'
+        END AS worn
+    FROM time_usages
+),
+combined_usage AS (
+    SELECT
+        cu.id,
+        cu.use_case,
+        ctu.worn,
+        ctu.total_min_worn
+    FROM categorized_usage cu
+    JOIN classified_time_usages ctu ON cu.id = ctu.id
+)
+SELECT
+    id,
+    use_case,
+    worn,
+    total_min_worn,
+    ROUND((total_min_worn::numeric/1440)*100, 2) AS percent_min_worn
+FROM 
+    combined_usage
+WHERE use_case = 'moderate use'
+ORDER BY id
+) TO '/Users/saquibhazari/Desktop/Fitbase Data/join_data/moderate_worn.csv' WITH (FORMAT CSV, HEADER)
