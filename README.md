@@ -1,14 +1,6 @@
 
-### About Me
-I'm a data analyst with a passion for turning data into actionable insights. My expertise includes a variety of data analysis tools and platforms.
-
-### Skills
-- **SQL**: Proficient in writing complex queries to extract, manipulate, and analyze data.
-- **PostgreSQL**: Experienced in using PostgreSQL for relational database management.
-- **AWS**: Knowledgeable in using AWS for cloud computing and data storage solutions.
-- **Tableau**: Skilled in creating interactive dashboards and visualizations.
-- **Excel**: Expert in data analysis, pivot tables, and advanced formulas.
-- **Google Sheets**: Experienced in collaborative data analysis and automation using Google Sheets.
+### About Datasets
+Please click on the branches to see all the Projects!
 
 ### Projects
 Here are some of the projects I've worked on:
@@ -34,8 +26,4 @@ Here are some of the projects I've worked on:
      - Streamlined data ingestion and processing.
      - Improved data availability and reliability.
 
-
-
-### Let's Connect!
-I'm always interested in collaborating on new projects and learning about innovative data solutions. Feel free to reach out if you'd like to connect!
 
